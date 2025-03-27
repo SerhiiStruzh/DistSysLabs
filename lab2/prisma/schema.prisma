@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int                   @id @default(autoincrement())
+  role            String
+  developerInfo   DeveloperInfo?   
+  customerTasks   TechnicalTask[]       @relation("CustomerTasks")
+  managedProjects Project[]             @relation("ManagedProjects")
+  teamMemberships ProjectTeamMember[] 
+  invoices        Invoice[]  
+}
+
+model DeveloperInfo {
+  id                Int      @id @default(autoincrement())
+  userId            Int      @unique
+  hourRate          Float
+  qualification     String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade) 
+}
+
+model TechnicalTask {
+  id           Int         @id @default(autoincrement())
+  customerId   Int
+  description  String
+  customer     User         @relation("CustomerTasks", fields: [customerId], references: [id])
+  taskJobs     TaskJob[]
+  project      Project?
+}
+
+model TaskJob {
+  id                  Int           @id @default(autoincrement())
+  taskId              Int
+  qualification       String
+  specialistsNeeded   Int
+  description         String
+  technicalTask       TechnicalTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id               Int                 @id @default(autoincrement())
+  managerId        Int
+  taskId           Int                 @unique
+  manager          User                @relation("ManagedProjects", fields: [managerId], references: [id])
+  technicalTask    TechnicalTask       @relation(fields: [taskId], references: [id])
+  teamMembers      ProjectTeamMember[]
+  invoices         Invoice[]
+}
+
+model ProjectTeamMember {
+  projectId    Int
+  developerId  Int
+  hoursWorked  Float
+  project      Project   @relation(fields: [projectId], references: [id])
+  developer    User      @relation(fields: [developerId], references: [id])
+
+  @@id([projectId, developerId])
+}
+
+model Invoice {
+  id            Int      @id @default(autoincrement())
+  projectId     Int      @unique
+  customerId    Int
+  amount        Float
+  project       Project  @relation(fields: [projectId], references: [id])
+  customer      User     @relation(fields: [customerId], references: [id])
+}
