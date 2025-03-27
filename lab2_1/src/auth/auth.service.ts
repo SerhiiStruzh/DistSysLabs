@@ -3,10 +3,10 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { SignInDto } from './dto/sign-in-dto.dto';
-import { SignUpDto } from './dto/sign-up-dto.dto';
+import { SignInDto } from './dto/sign-in.dto';
+import { SignUpDto } from './dto/sign-up.dto';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { AuthResponseDto } from './dto/auth-response-dto.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +24,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new BadRequestException('Користувач з таким email вже існує');
+      throw new BadRequestException('User with this email already exists');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -50,12 +50,12 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('Користувача не знайдено');
+      throw new NotFoundException('User not found');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new BadRequestException('Невірний пароль'); 
+      throw new BadRequestException('Incorrect password'); 
     }
 
     const token = this.generateJwt(user.id);
