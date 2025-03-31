@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRatingDto } from './dto/create-rating.dto';
 import { RatingResponseDto } from './dto/rating-response.dto';
+import { UpdateRatingDto } from './dto/update-rating.dto';
 
 @Injectable()
 export class RatingsService {
@@ -63,24 +64,79 @@ export class RatingsService {
         };
       }
 
-      async getRatingsForGame(gameId: number): Promise<RatingResponseDto[]> {
-        const ratings = await this.prisma.rating.findMany({
-          where: {
-            gameId,
-          },
-          include: {
-            player: true,
-          },
-        });
-    
-        return ratings.map((rating) => ({
-          id: rating.id,
-          rating: rating.rating,
-          review: rating.review ? rating.review : undefined,
-          createdAt: rating.createdAt,
-          playerId: rating.playerId,
-          username: rating.player.username,
-          gameId: rating.gameId,
-        }));
+    async getRatingsForGame(gameId: number): Promise<RatingResponseDto[]> {
+      const ratings = await this.prisma.rating.findMany({
+        where: {
+          gameId,
+        },
+        include: {
+          player: true,
+        },
+      });
+  
+      return ratings.map((rating) => ({
+        id: rating.id,
+        rating: rating.rating,
+        review: rating.review ? rating.review : undefined,
+        createdAt: rating.createdAt,
+        playerId: rating.playerId,
+        username: rating.player.username,
+        gameId: rating.gameId,
+      }));
+    }
+
+    async deleteRating(playerId: number, ratingId: number): Promise<void> {
+      const rating = await this.prisma.rating.findUnique({
+        where: { id: ratingId },
+      });
+  
+      if (!rating) {
+        throw new NotFoundException('Rating not found');
       }
+  
+      if (rating.playerId !== playerId) {
+        throw new BadRequestException('You can only delete your own rating');
+      }
+  
+      await this.prisma.rating.delete({
+        where: { id: ratingId },
+      });
+    }
+    
+    async updateRating(playerId: number, updateRatingDto: UpdateRatingDto): Promise<RatingResponseDto> {
+      const { ratingId, rating, review } = updateRatingDto;
+  
+      const ratingToUpdate = await this.prisma.rating.findUnique({
+        where: { id: ratingId },
+      });
+  
+      if (!ratingToUpdate) {
+        throw new NotFoundException('Rating not found');
+      }
+  
+      if (ratingToUpdate.playerId !== playerId) {
+        throw new BadRequestException('You can only update your own rating');
+      }
+  
+      const updatedRating = await this.prisma.rating.update({
+        where: { id: ratingId },
+        data: {
+          rating: rating ?? ratingToUpdate.rating,
+          review: review ?? ratingToUpdate.review,
+        },
+        include: {
+          player: true
+        }
+      });
+
+      return {
+        id: updatedRating.id,
+        rating: updatedRating.rating,
+        review: updatedRating.review ?? undefined,
+        createdAt: updatedRating.createdAt,
+        playerId: updatedRating.playerId,
+        username: updatedRating.player.username,
+        gameId: updatedRating.gameId,
+      };
+    }
 }

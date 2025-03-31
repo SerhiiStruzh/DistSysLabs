@@ -1,6 +1,9 @@
 import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpdateRatingDto {
+  @IsInt()
+  ratingId: number;
+
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -10,7 +13,4 @@ export class UpdateRatingDto {
   @IsOptional()
   @IsString()
   review?: string;
-
-  @IsInt()
-  gameId: number;
 }
