@@ -9,9 +9,7 @@ export class GamesController {
   constructor(private readonly gameService: GamesService) {}
 
   @Post()
-  async createGame(
-    @Body() createGameDto: CreateGameDto,
-  ): Promise<GameResponseDto> {
+  async createGame(@Body() createGameDto: CreateGameDto): Promise<GameResponseDto> {
     return this.gameService.createGame(createGameDto);
   }
 

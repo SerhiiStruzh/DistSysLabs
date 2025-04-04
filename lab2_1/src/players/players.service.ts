@@ -31,21 +31,21 @@ export class PlayersService {
   }
 
   async updatePlayer(
-    id: number,
+    playerId: number,
     updatePlayerDto: UpdatePlayerDto,
   ): Promise<PlayerResponseDto> {
     const { username, email } = updatePlayerDto;
 
     const existingPlayer = await this.prisma.player.findUnique({
-      where: { id },
+      where: { id: playerId },
     });
 
     if (!existingPlayer) {
-      throw new NotFoundException(`Player with ID ${id} not found`);
+      throw new NotFoundException(`Player with ID ${playerId} not found`);
     }
 
     const updatedPlayer = await this.prisma.player.update({
-      where: { id },
+      where: { id: playerId },
       data: {
         username: username || existingPlayer.username,
         email: email || existingPlayer.email,
