@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -20,12 +20,20 @@ export class AuthService {
   async signUp(signUpDto: SignUpDto) : Promise<AuthResponseDto> {
     const { username, email, password } = signUpDto;
 
-    const existingUser = await this.prisma.player.findUnique({
-      where: { email },
+    const existingUser = await this.prisma.player.findFirst({
+      where: {
+        OR: [
+              { email: email },
+              { username: username }
+            ]
+      }
     });
 
     if (existingUser) {
-      throw new RpcException('User with this email already exists');
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'User with this email or username already exists',
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -51,12 +59,18 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new RpcException('User not found');
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'User not found',
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new RpcException('Incorrect password'); 
+      throw new RpcException({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Incorrect password',
+      });
     }
 
     const token = this.generateJwt(user.id);
