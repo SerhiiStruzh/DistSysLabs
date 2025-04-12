@@ -1,0 +1,30 @@
+package lab1;
+
+import java.io.File;
+
+public class ListFilesExample {
+    public static void main(String[] args) {
+        // Отримуємо поточну директорію
+        String currentDirectory = System.getProperty("user.dir");
+        
+        System.out.println(currentDirectory);
+        
+        // Створюємо об'єкт File для поточної директорії
+        File directory = new File(currentDirectory);
+        
+        // Отримуємо список усіх файлів та папок у директорії
+        File[] files = directory.listFiles();
+        
+        if (files != null) {
+            System.out.println("Файли в поточній директорії:");
+            for (File file : files) {
+                if (file.isFile()) {
+                    // Виводимо тільки файли (не папки)
+                    System.out.println(file.getName());
+                }
+            }
+        } else {
+            System.out.println("Помилка при доступі до директорії або вона пуста.");
+        }
+    }
+}

@@ -1,0 +1,60 @@
+package lab1;
+
+public class PrimeUtils {
+
+    public static boolean isPrime(int number) {
+        if (number < 2) {
+            return false;
+        }
+        for (int i = 2; i <= (int) Math.sqrt(number); i++) {
+            if (number % i == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    public static int[] findMaxPrimeGap(int n) {
+        int previousPrime = 2;
+        int maxGap = 0;
+        int startPrime = -1;
+        int endPrime = -1;
+        
+        for (int i = 2; i < n; i++) {
+            if (PrimeUtils.isPrime(i)) {
+            	int gap = i - previousPrime;
+                if (gap > maxGap) {
+                    maxGap = gap;
+                    startPrime = previousPrime;
+                    endPrime = i;
+                }
+                previousPrime = i;
+            }
+        }
+        
+        return new int[] {maxGap, startPrime, endPrime};
+    }
+    
+//    public static int[] findMaxPrimeGap(int n) {
+//        int previousPrime = -1;
+//        int maxGap = 0;
+//        int startPrime = -1;
+//        int endPrime = -1;
+//        
+//        for (int i = 2; i < n; i++) {
+//            if (PrimeUtils.isPrime(i)) {
+//                if (previousPrime != -1) {
+//                    int gap = i - previousPrime;
+//                    if (gap > maxGap) {
+//                        maxGap = gap;
+//                        startPrime = previousPrime;
+//                        endPrime = i;
+//                    }
+//                }
+//                previousPrime = i;
+//            }
+//        }
+//        
+//        return new int[] {maxGap, startPrime, endPrime};
+//    }
+}

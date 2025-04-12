@@ -1,0 +1,70 @@
+package lab1;
+
+import java.io.*;
+import java.util.Random;
+
+public class Main {
+
+    // Метод для перевірки, чи є число простим
+    public static boolean isPrime(int number) {
+        if (number < 2) return false;
+        for (int i = 2; i * i <= number; i++) {
+            if (number % i == 0) return false;
+        }
+        return true;
+    }
+
+    // Метод для генерації випадкового числа n
+    public static int generateRandomN(int min, int max) {
+        Random random = new Random();
+        return random.nextInt(max - min + 1) + min;
+    }
+
+    // Метод для знаходження найбільшого проміжку між послідовними простими числами
+    public static int findMaxPrimeGap(int n) {
+        int previousPrime = -1;
+        int maxGap = 0;
+
+        for (int i = 2; i < n; i++) {
+            if (isPrime(i)) {
+                if (previousPrime != -1) {
+                    int gap = i - previousPrime;
+                    if (gap > maxGap) {
+                        maxGap = gap;
+                    }
+                }
+                previousPrime = i;
+            }
+        }
+        return maxGap;
+    }
+
+    // Метод для збереження результату у файл
+    public static void saveToFile(String filename, int n, int maxGap) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write("Значення n: " + n + "\n");
+            writer.write("Найбільший проміжок між простими числами: " + maxGap + "\n");
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            int n = generateRandomN(100, 1000); // Генеруємо випадкове n
+            System.out.println("Згенероване n: " + n);
+
+            long startTime = System.nanoTime(); // Починаємо вимір часу
+
+            int maxGap = findMaxPrimeGap(n);
+
+            long endTime = System.nanoTime(); // Закінчуємо вимір часу
+
+            System.out.println("Найбільший проміжок: " + maxGap);
+            System.out.println("Час виконання: " + (endTime - startTime) / 1e6 + " мс");
+
+            saveToFile("output.txt", n, maxGap); // Збереження у файл
+
+        } catch (IOException e) {
+            System.out.println("Помилка роботи з файлом: " + e.getMessage());
+        }
+    }
+}

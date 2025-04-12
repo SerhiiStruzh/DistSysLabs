@@ -1,0 +1,214 @@
+package lab1;
+import java.io.*;
+import java.util.Random;
+import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ParallelPrimeGapFinder {
+    // Метод для перевірки, чи є число простим
+    public static boolean isPrime(int number) {
+        if (number < 2) return false;
+        for (int i = 2; i * i <= number; i++) {
+            if (number % i == 0) return false;
+        }
+        return true;
+    }
+    
+    // Метод для генерації випадкового числа n
+    public static int generateRandomN(int min, int max) {
+        Random random = new Random();
+        return random.nextInt(max - min + 1) + min;
+    }
+    
+    // Модифікований метод для знаходження найбільшого проміжку між простими числами
+    // Повертає масив: [maxGap, startPrime, endPrime]
+    public static int[] findMaxPrimeGap(int start, int end) {
+        int previousPrime = -1;
+        int maxGap = 0;
+        int startPrime = -1;
+        int endPrime = -1;
+        
+        for (int i = start; i < end; i++) {
+            if (isPrime(i)) {
+                if (previousPrime != -1) {
+                    int gap = i - previousPrime;
+                    if (gap > maxGap) {
+                        maxGap = gap;
+                        startPrime = previousPrime;
+                        endPrime = i;
+                    }
+                }
+                previousPrime = i;
+            }
+        }
+        
+        return new int[] {maxGap, startPrime, endPrime};
+    }
+    
+    // Клас для паралельного обчислення
+    static class PrimeGapTask implements Callable<int[]> {
+        private final int start;
+        private final int end;
+        private final List<Integer> previousRangePrimes;
+        
+        public PrimeGapTask(int start, int end, List<Integer> previousRangePrimes) {
+            this.start = start;
+            this.end = end;
+            this.previousRangePrimes = previousRangePrimes;
+        }
+        
+        @Override
+        public int[] call() {
+            int previousPrime = -1;
+            
+            // Використовуємо останнє просте число з попереднього діапазону, якщо воно є
+            if (!previousRangePrimes.isEmpty()) {
+                previousPrime = previousRangePrimes.get(previousRangePrimes.size() - 1);
+            }
+            
+            int maxGap = 0;
+            int startPrime = -1;
+            int endPrime = -1;
+            
+            List<Integer> primes = new ArrayList<>();
+            
+            for (int i = start; i < end; i++) {
+                if (isPrime(i)) {
+                    primes.add(i);
+                    
+                    if (previousPrime != -1) {
+                        int gap = i - previousPrime;
+                        if (gap > maxGap) {
+                            maxGap = gap;
+                            startPrime = previousPrime;
+                            endPrime = i;
+                        }
+                    }
+                    previousPrime = i;
+                }
+            }
+            
+            // Додаємо знайдені прості числа до результату, щоб врахувати проміжки між діапазонами
+            return new int[] {maxGap, startPrime, endPrime, primes.isEmpty() ? -1 : primes.get(0), 
+                              primes.isEmpty() ? -1 : primes.get(primes.size() - 1)};
+        }
+    }
+    
+    // Паралельний метод для знаходження найбільшого проміжку
+    public static int[] findMaxPrimeGapParallel(int n, int numThreads) throws InterruptedException, ExecutionException {
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        int rangeSize = n / numThreads;
+        List<Future<int[]>> futures = new ArrayList<>();
+        
+        // Зберігаємо останнє просте число кожного діапазону
+        List<Integer> previousRangePrimes = new ArrayList<>();
+        previousRangePrimes.add(-1); // Початкове значення для першого діапазону
+        
+        for (int i = 0; i < numThreads; i++) {
+            int start = i * rangeSize;
+            int end = (i == numThreads - 1) ? n : (i + 1) * rangeSize;
+            
+            // Перший діапазон завжди починається з 2 (найменше просте число)
+            if (i == 0 && start < 2) start = 2;
+            
+            futures.add(executor.submit(new PrimeGapTask(start, end, new ArrayList<>(previousRangePrimes))));
+        }
+        
+        int maxGap = 0;
+        int startPrime = -1;
+        int endPrime = -1;
+        
+        List<int[]> results = new ArrayList<>();
+        
+        for (Future<int[]> future : futures) {
+            int[] result = future.get();
+            results.add(result);
+            
+            // Знаходимо максимальний проміжок серед всіх потоків
+            if (result[0] > maxGap) {
+                maxGap = result[0];
+                startPrime = result[1];
+                endPrime = result[2];
+            }
+            
+            // Додаємо останнє просте число в діапазоні для наступного потоку
+            if (result[4] != -1) {
+                previousRangePrimes.add(result[4]);
+            }
+        }
+        
+        // Перевіряємо проміжки між діапазонами
+        for (int i = 1; i < results.size(); i++) {
+            int[] prevResult = results.get(i - 1);
+            int[] currResult = results.get(i);
+            
+            // Якщо в попередньому і поточному діапазоні є прості числа
+            if (prevResult[4] != -1 && currResult[3] != -1) {
+                int gap = currResult[3] - prevResult[4];
+                if (gap > maxGap) {
+                    maxGap = gap;
+                    startPrime = prevResult[4];
+                    endPrime = currResult[3];
+                }
+            }
+        }
+        
+        executor.shutdown();
+        return new int[] {maxGap, startPrime, endPrime};
+    }
+    
+    // Метод для збереження результату у файл
+    public static void saveToFile(String filename, int n, int maxGap, int startPrime, int endPrime, long executionTime) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write("Значення n: " + n + "\n");
+            writer.write("Найбільший проміжок: " + maxGap + "\n");
+            writer.write("Між простими числами: " + startPrime + " і " + endPrime + "\n");
+            writer.write("Час виконання: " + executionTime + " мс\n");
+        }
+    }
+    
+    public static void main(String[] args) {
+        try {
+            int n = generateRandomN(10000000, 10000001); // Більше значення для демонстрації переваг паралелізму
+            int numThreads = Runtime.getRuntime().availableProcessors(); // Кількість доступних процесорів
+            
+            System.out.println("Згенероване n: " + n);
+            System.out.println("Кількість потоків: " + numThreads);
+            
+            // Послідовне виконання
+            System.out.println("\nПослідовне виконання:");
+            long seqStartTime = System.nanoTime();
+            int[] seqResult = findMaxPrimeGap(2, n);
+            long seqEndTime = System.nanoTime();
+            long seqExecutionTime = (seqEndTime - seqStartTime) / 1_000_000;
+            
+            System.out.println("Найбільший проміжок: " + seqResult[0]);
+            System.out.println("Між простими числами: " + seqResult[1] + " і " + seqResult[2]);
+            System.out.println("Час виконання: " + seqExecutionTime + " мс");
+            
+            saveToFile("sequential_output.txt", n, seqResult[0], seqResult[1], seqResult[2], seqExecutionTime);
+            
+            // Паралельне виконання
+            System.out.println("\nПаралельне виконання:");
+            long parStartTime = System.nanoTime();
+            int[] parResult = findMaxPrimeGapParallel(n, numThreads);
+            long parEndTime = System.nanoTime();
+            long parExecutionTime = (parEndTime - parStartTime) / 1_000_000;
+            
+            System.out.println("Найбільший проміжок: " + parResult[0]);
+            System.out.println("Між простими числами: " + parResult[1] + " і " + parResult[2]);
+            System.out.println("Час виконання: " + parExecutionTime + " мс");
+            
+            saveToFile("parallel_output.txt", n, parResult[0], parResult[1], parResult[2], parExecutionTime);
+            
+            // Підрахунок прискорення
+            double speedup = (double) seqExecutionTime / parExecutionTime;
+            System.out.println("\nПрискорення: " + speedup + "x");
+            
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            System.out.println("Помилка: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}

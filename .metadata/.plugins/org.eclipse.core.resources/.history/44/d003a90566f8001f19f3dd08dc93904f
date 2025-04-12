@@ -1,0 +1,66 @@
+package lab1;
+
+import java.io.*;
+import java.util.Random;
+
+public class Main {
+
+    public static boolean isPrime(int number) {
+        if (number < 2) return false;
+        for (int i = 2; i * i <= number; i++) {
+            if (number % i == 0) return false;
+        }
+        return true;
+    }
+
+    public static int generateRandomN(int min, int max) {
+        Random random = new Random();
+        return random.nextInt(max - min + 1) + min;
+    }
+
+    public static int findMaxPrimeGap(int n) {
+        int previousPrime = -1;
+        int maxGap = 0;
+
+        for (int i = 2; i < n; i++) {
+            if (isPrime(i)) {
+                if (previousPrime != -1) {
+                    int gap = i - previousPrime;
+                    if (gap > maxGap) {
+                        maxGap = gap;
+                    }
+                }
+                previousPrime = i;
+            }
+        }
+        return maxGap;
+    }
+
+    public static void saveToFile(String filename, int n, int maxGap) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write("Значення n: " + n + "\n");
+            writer.write("Найбільший проміжок між простими числами: " + maxGap + "\n");
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            int n = generateRandomN(100, 1000);
+            System.out.println("Згенероване n: " + n);
+
+            long startTime = System.nanoTime();
+
+            int maxGap = findMaxPrimeGap(n);
+
+            long endTime = System.nanoTime();
+
+            System.out.println("Найбільший проміжок: " + maxGap);
+            System.out.println("Час виконання: " + (endTime - startTime) / 1e6 + " мс");
+
+            saveToFile("output.txt", n, maxGap);
+
+        } catch (IOException e) {
+            System.out.println("Помилка роботи з файлом: " + e.getMessage());
+        }
+    }
+}

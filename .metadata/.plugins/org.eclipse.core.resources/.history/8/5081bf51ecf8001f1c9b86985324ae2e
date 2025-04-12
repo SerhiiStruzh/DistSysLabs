@@ -1,0 +1,21 @@
+package lab1;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class OutputHandler {
+	public static void saveToFile(String filename, int n, int maxGap, int startPrime, int endPrime) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write("Значення n: " + n + "\n");
+            writer.write("Найбільший проміжок між простими числами: " + maxGap + "\n");
+            writer.write("Між простими числами: " + startPrime + " і " + endPrime);
+        }
+    }
+	
+	public static void printToConsole(int n, int maxGap, int startPrime, int endPrime) {
+        System.out.println("Значення n: " + n);
+        System.out.println("Найбільший проміжок між простими числами: " + maxGap);
+        System.out.println("Між простими числами: " + startPrime + " і " + endPrime);
+    }
+}

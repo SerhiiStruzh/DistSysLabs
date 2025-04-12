@@ -1,0 +1,18 @@
+package lab1;
+
+public class Main {
+
+    public static void main(String[] args) {
+    	int n = InputHandler.generateRandomInput(10000, 1000000);
+        System.out.println("Згенероване n: " + n);
+
+        long startTime = System.nanoTime();
+
+        int maxGap = findMaxPrimeGap(n);
+
+        long endTime = System.nanoTime();
+
+        System.out.println("Найбільший проміжок: " + maxGap);
+        System.out.println("Час виконання: " + (endTime - startTime) / 1e6 + " мс");
+    }
+}

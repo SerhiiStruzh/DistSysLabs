@@ -1,0 +1,129 @@
+package lab1;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+
+public class PrimeNumberFinder {
+    public static void main(String[] args) {
+        int n = 1000000; // Збільшив верхню межу для більш помітної різниці у часі
+        int numThreads = Runtime.getRuntime().availableProcessors(); // Використовуємо кількість доступних процесорів
+        
+        // Вимірюємо час для однопотокового методу
+        long startTimeLinear = System.currentTimeMillis();
+        List<Integer> primesLinear = findPrimesLinear(n);
+        long endTimeLinear = System.currentTimeMillis();
+        long linearTime = endTimeLinear - startTimeLinear;
+        
+        // Вимірюємо час для багатопотокового методу
+        long startTimeMultithreaded = System.currentTimeMillis();
+        List<Integer> primesMultithreaded = findPrimesMultithreaded(n, numThreads);
+        long endTimeMultithreaded = System.currentTimeMillis();
+        long multithreadedTime = endTimeMultithreaded - startTimeMultithreaded;
+        
+        // Виводимо результати та порівнюємо час виконання
+        System.out.println("Знайдено " + primesLinear.size() + " простих чисел до " + n);
+        System.out.println("Час лінійного методу: " + linearTime + " мс");
+        System.out.println("Час багатопотокового методу з " + numThreads + " потоками: " + multithreadedTime + " мс");
+        System.out.println("Прискорення: " + String.format("%.2f", (double)linearTime / multithreadedTime) + "x");
+        
+        // Перевіряємо, чи обидва методи дали однаковий результат
+        boolean resultsMatch = primesLinear.size() == primesMultithreaded.size() && 
+                              primesLinear.containsAll(primesMultithreaded) && 
+                              primesMultithreaded.containsAll(primesLinear);
+        System.out.println("Результати співпадають: " + resultsMatch);
+        
+        // Якщо n невеликий, можна вивести самі прості числа
+        if (n <= 1000) {
+            System.out.println("Прості числа до " + n + ": " + primesLinear);
+        }
+    }
+    
+    /**
+     * Знаходить прості числа лінійним (однопотоковим) способом
+     */
+    public static List<Integer> findPrimesLinear(int n) {
+        List<Integer> primes = new ArrayList<>();
+        for (int num = 2; num <= n; num++) {
+            if (isPrime(num)) {
+                primes.add(num);
+            }
+        }
+        return primes;
+    }
+    
+    /**
+     * Перевіряє, чи є число простим
+     */
+    public static boolean isPrime(int num) {
+        if (num < 2) {
+            return false;
+        }
+        for (int i = 2; i * i <= num; i++) {
+            if (num % i == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Знаходить прості числа багатопотоковим способом
+     */
+    public static List<Integer> findPrimesMultithreaded(int n, int numThreads) {
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        List<Future<List<Integer>>> futures = new ArrayList<>();
+        
+        // Ділимо діапазон [2, n] на numThreads частин
+        int rangeSize = (n - 1) / numThreads;
+        int start = 2;
+        
+        for (int i = 0; i < numThreads; i++) {
+            int end = start + rangeSize - 1;
+            if (i == numThreads - 1) {
+                end = n; // Останній потік обробляє залишок діапазону
+            }
+            
+            // Відправляємо задачу для кожного діапазону
+            Future<List<Integer>> future = executor.submit(new PrimeFinderTask(start, end));
+            futures.add(future);
+            start = end + 1;
+        }
+        
+        // Збираємо результати з усіх задач
+        List<Integer> primes = new ArrayList<>();
+        for (Future<List<Integer>> future : futures) {
+            try {
+                primes.addAll(future.get()); // Додаємо прості числа з кожної задачі
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        // Закриваємо пул потоків
+        executor.shutdown();
+        return primes;
+    }
+    
+    // Callable-задача для пошуку простих чисел у заданому діапазоні
+    private static class PrimeFinderTask implements Callable<List<Integer>> {
+        private final int start;
+        private final int end;
+        
+        public PrimeFinderTask(int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+        
+        @Override
+        public List<Integer> call() {
+            List<Integer> primes = new ArrayList<>();
+            for (int num = start; num <= end; num++) {
+                if (isPrime(num)) {
+                    primes.add(num);
+                }
+            }
+            return primes;
+        }
+    }
+}

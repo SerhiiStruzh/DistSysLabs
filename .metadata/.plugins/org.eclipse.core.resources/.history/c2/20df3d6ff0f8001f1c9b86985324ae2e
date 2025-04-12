@@ -1,0 +1,24 @@
+package lab1;
+
+import java.io.FileNotFoundException;
+
+public class Main {
+
+    public static void main(String[] args) throws FileNotFoundException {
+//    	int n = InputHandler.generateRandomInput(10, 50);
+//    	int n = InputHandler.readInput();
+    	int n = InputHandler.readInputFromFile(".\input.txt");
+
+        long startTime = System.nanoTime();
+
+        int[] result = PrimeUtils.findMaxPrimeGap(n);
+        int maxGap = result[0];
+        int startPrime = result[1];
+        int endPrime = result[2];
+
+        long endTime = System.nanoTime();
+
+        OutputHandler.printToConsole(n, maxGap, startPrime, endPrime);
+        System.out.println("Час виконання: " + (endTime - startTime) / 1e6 + " мс");
+    }
+}

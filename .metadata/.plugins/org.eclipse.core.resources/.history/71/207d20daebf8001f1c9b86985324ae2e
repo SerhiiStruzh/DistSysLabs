@@ -1,0 +1,14 @@
+package lab1;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class OutputHandler {
+	public static void saveToFile(String filename, int n, int maxGap) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            writer.write("Значення n: " + n + "\n");
+            writer.write("Найбільший проміжок між простими числами: " + maxGap + "\n");
+        }
+    }
+}

@@ -1,0 +1,18 @@
+package lab1;
+
+import java.util.Scanner;
+
+public class InputHandler {
+
+    public static int readInput() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Введіть значення n: ");
+        
+        while (!scanner.hasNextInt()) {
+            System.out.println("Помилка! Введіть ціле число.");
+            scanner.next();
+        }
+
+        return scanner.nextInt();
+    }
+}
