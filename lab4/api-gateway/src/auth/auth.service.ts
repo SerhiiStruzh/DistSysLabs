@@ -1,12 +1,9 @@
 import { HttpException, HttpStatus, Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { SignInDto } from './dto/sign-in.dto';
 import { SignUpDto } from './dto/sign-up.dto';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { ClientProxy, ClientProxyFactory, RpcException, Transport } from '@nestjs/microservices';
+import { ClientProxy} from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
-import RpcError from 'src/common/interfaces/rpc-error.interface';
 
 @Injectable()
 export class AuthService implements OnModuleInit {

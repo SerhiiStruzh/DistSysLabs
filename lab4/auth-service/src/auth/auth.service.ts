@@ -60,7 +60,7 @@ export class AuthService {
 
     if (!user) {
       throw new RpcException({
-        statusCode: HttpStatus.BAD_REQUEST,
+        statusCode: HttpStatus.NOT_FOUND,
         message: 'User not found',
       });
     }
