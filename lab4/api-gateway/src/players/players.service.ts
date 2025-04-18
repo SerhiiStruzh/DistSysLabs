@@ -5,7 +5,7 @@ import { UpdatePlayerDto } from './dto/update-player.dto';
 import { firstValueFrom, toArray } from 'rxjs';
 
 @Injectable()
-export class PlayersService  implements OnModuleInit {
+export class PlayersService implements OnModuleInit {
     constructor(@Inject('PLAYERS_SERVICE') private playersService: ClientProxy) {}
 
     async onModuleInit() {

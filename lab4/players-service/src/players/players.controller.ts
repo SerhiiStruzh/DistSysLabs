@@ -4,7 +4,7 @@ import { PlayerResponseDto } from './dto/response-player.dto';
 import { MessagePattern } from '@nestjs/microservices';
 import { UpdatePlayerDto } from './dto/update-player.dto';
 
-@Controller('users')
+@Controller()
 export class PlayersController {
     constructor(private readonly playersService: PlayersService) {}
 
