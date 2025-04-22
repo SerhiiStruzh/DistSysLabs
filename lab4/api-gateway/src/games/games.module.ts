@@ -6,15 +6,15 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 @Module({
   imports: [
       ClientsModule.register([
-                    {
-                      name: 'GAMES_SERVICE',
-                      transport: Transport.TCP,
-                      options: {
-                        host: 'localhost',
-                        port: 3003,
-                      },
-                    },
-                  ]),
+        {
+          name: 'GAMES_SERVICE',
+          transport: Transport.TCP,
+          options: {
+            host: 'localhost',
+            port: 3003,
+          },
+        },
+      ]),
     ],
   providers: [GamesService],
   controllers: [GamesController]

@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { PlayerResponseDto } from './dto/response-player.dto';
 import { UpdatePlayerDto } from './dto/update-player.dto';
 import { RpcException } from '@nestjs/microservices';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PlayersService {
@@ -48,17 +49,27 @@ export class PlayersService {
       })
     }
 
-    const updatedPlayer = await this.prisma.player.update({
-      where: { id: playerId },
-      data: {
-        username: username || existingPlayer.username,
-        email: email || existingPlayer.email,
-      },
-    });
+    try {
+      const updatedPlayer = await this.prisma.player.update({
+        where: { id: playerId },
+        data: {
+          username: username || existingPlayer.username,
+          email: email || existingPlayer.email,
+        },
+      });
 
-    return {
-      username: updatedPlayer.username,
-      email: updatedPlayer.email,
-    };
+      return {
+        username: updatedPlayer.username,
+        email: updatedPlayer.email,
+      };
+    } catch (error) {
+      if(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new RpcException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'This name or email is already taken.',
+        })
+      }
+      throw error;
+    }
   }
 }

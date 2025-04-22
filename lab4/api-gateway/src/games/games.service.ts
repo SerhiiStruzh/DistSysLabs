@@ -66,4 +66,29 @@ export class GamesService implements OnModuleInit {
         throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  async getGameById(id: number) : Promise<GameResponseDto> {
+    try {
+      return await firstValueFrom(
+          this.gamesService.send<GameResponseDto>('games.get-by-id', id)
+      );
+    } catch (error) {
+        if(error.statusCode) {
+            throw new HttpException(error.message, error.statusCode)
+        }
+        throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getGamesByIds(ids: number[]) : Promise<GameResponseDto[]> {
+    try {
+      const games = await this.gamesService.send<GameResponseDto>('games.get-by-ids', ids).pipe(toArray());
+      return await firstValueFrom(games);
+    } catch (error) {
+        if(error.statusCode) {
+            throw new HttpException(error.message, error.statusCode)
+        }
+        throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

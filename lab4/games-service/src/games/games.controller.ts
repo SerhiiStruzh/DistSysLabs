@@ -28,4 +28,14 @@ export class GamesController{
     async getAllGames(): Promise<GameResponseDto[]> {
         return this.gamesService.getAllGames();
     }
+
+    @MessagePattern('games.get-by-id')
+    async getGameById(id: number): Promise<GameResponseDto> {
+        return this.gamesService.getGameById(id);
+    }
+
+    @MessagePattern('games.get-by-ids')
+    async getGameByIds(ids: number[]): Promise<GameResponseDto[]> {
+        return this.gamesService.getGamesByIds(ids);
+    }
 }

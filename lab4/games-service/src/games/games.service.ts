@@ -56,9 +56,11 @@ export class GamesService {
         });
       }
   
+      const { gameId, ...updateData } = updateGameDto;
+
       const updatedGame = await this.prisma.game.update({
         where: { id },
-        data: updateGameDto,
+        data: updateData,
       });
   
       return {
@@ -74,6 +76,47 @@ export class GamesService {
     async getAllGames(): Promise<GameResponseDto[]> {
       const games = await this.prisma.game.findMany();
       
+      return games.map(game => ({
+        id: game.id,
+        title: game.title,
+        genre: game.genre,
+        platforms: game.platforms,
+        releaseDate: game.releaseDate ? game.releaseDate : undefined,
+        description: game.description ? game.description : undefined,
+      }));
+    }
+
+    async getGameById(id: number) : Promise<GameResponseDto> {
+      const game = await this.prisma.game.findFirst({
+        where: { id }
+      });
+
+      if(!game) {
+        throw new RpcException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: `Game with ID ${id} not found`,
+        });
+      }
+
+      return {
+        id: game!.id,
+        title: game!.title,
+        genre: game!.genre,
+        platforms: game!.platforms,
+        releaseDate: game!.releaseDate ? game!.releaseDate : undefined,
+        description: game!.description ? game!.description : undefined,
+      };
+    }
+
+    async getGamesByIds(ids: number[]): Promise<GameResponseDto[]> {
+      const games = await this.prisma.game.findMany({
+        where: {
+          id: {
+            in: ids,
+          },
+        },
+      });
+
       return games.map(game => ({
         id: game.id,
         title: game.title,
