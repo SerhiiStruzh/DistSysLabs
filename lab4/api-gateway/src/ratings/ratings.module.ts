@@ -9,7 +9,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
       name: 'RATINGS_SERVICE',
       transport: Transport.TCP,
       options: {
-        host: 'localhost',
+        host: 'ratings-service',
         port: 3005
       }
     }])

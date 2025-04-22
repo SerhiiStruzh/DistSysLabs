@@ -1,0 +1,77 @@
+version: '3.8'
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile 
+    env_file:
+      - ./api-gateway/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - games-service
+      - library-service
+      - players-service
+      - ratings-service
+    networks:
+      - my_network
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./auth-service/.env
+    ports:
+      - "3001:3001"
+    networks:
+      - my_network
+
+  games-service:
+    build:
+      context: ./games-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./games-service/.env
+    ports:
+      - "3003:3003"
+    networks:
+      - my_network
+
+  library-service:
+    build:
+      context: ./library-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./library-service/.env
+    ports:
+      - "3004:3004"
+    networks:
+      - my_network
+
+  players-service:
+    build:
+      context: ./players-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./players-service/.env
+    ports:
+      - "3002:3002"
+    networks:
+      - my_network
+
+  ratings-service:
+    build:
+      context: ./ratings-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./ratings-service/.env
+    ports:
+      - "3005:3005"
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge

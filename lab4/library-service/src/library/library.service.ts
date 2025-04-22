@@ -25,7 +25,7 @@ export class LibraryService {
     let gameData: any = null;
     try {
       gameData = await firstValueFrom(
-        this.httpService.get(`http://localhost:3000/games/${gameId}`),
+        this.httpService.get(`http://api-gateway:3000/games/${gameId}`),
       );
     } catch (error) {
       if (error instanceof AxiosError && error.response?.status === 404) {
@@ -124,7 +124,7 @@ export class LibraryService {
     let gamesData: any = null;
     try {
       gamesData = await firstValueFrom(
-        this.httpService.post(`http://localhost:3000/games/by-ids`, {ids: gameIds}),
+        this.httpService.post(`http://api-gateway:3000/games/by-ids`, {ids: gameIds}),
       );
     } catch (error) {
       throw new RpcException({

@@ -10,7 +10,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
             name: 'LIBRARY_SERVICE',
             transport: Transport.TCP,
             options: {
-              host: 'localhost',
+              host: 'library-service',
               port: 3004,
             },
           },
