@@ -24,7 +24,7 @@ export class GamesService {
       };
     }
   
-    async deleteGame(id: number): Promise<void> {
+    async deleteGame(id: number): Promise<boolean> {
       const game = await this.prisma.game.findUnique({
         where: { id },
       });
@@ -39,6 +39,8 @@ export class GamesService {
       await this.prisma.game.delete({
         where: { id },
       });
+
+      return true;
     }
   
     async updateGame(

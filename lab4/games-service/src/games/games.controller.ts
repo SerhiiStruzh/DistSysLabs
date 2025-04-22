@@ -15,7 +15,7 @@ export class GamesController{
     }
 
     @MessagePattern('games.delete')
-    async deleteGame(id: number): Promise<void> {
+    async deleteGame(id: number): Promise<boolean> {
         return this.gamesService.deleteGame(id);
     }
 
